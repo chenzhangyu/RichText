@@ -1,0 +1,22 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.unique.fancysherry.scan.ui.fragment.EndListFragment">
+
+
+    <ScrollView
+        android:id="@+id/richtext_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.example.fancysherry.richtext.RichText
+            android:id="@+id/richtext"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:default_height="50dp"
+            tools:default_width="50dp" />
+    </ScrollView>
+
+
+</FrameLayout>
