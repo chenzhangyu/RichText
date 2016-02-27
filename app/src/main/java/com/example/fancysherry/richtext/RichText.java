@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -31,9 +32,11 @@ import android.text.style.ClickableSpan;
 import android.text.style.ImageSpan;
 import android.text.style.URLSpan;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.TextView;
 
+import com.example.fancysherry.richtext.util.DensityUtils;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
 import com.squareup.picasso.Target;
@@ -46,17 +49,18 @@ public class RichText extends TextView {
   private static Pattern IMAGE_TAG_PATTERN = Pattern.compile("\\<img(.*?)\\>");
   private static Pattern IMAGE_WIDTH_PATTERN = Pattern.compile("width=\"(.*?)\"");
   private static Pattern IMAGE_HEIGHT_PATTERN = Pattern.compile("height=\"(.*?)\"");
-  private static Pattern IMAGE_SRC_PATTERN = Pattern.compile("src=\"(.*?)\"");
+  private static Pattern IMAGE_SRC_PATTERN = Pattern.compile("src=\"(.*?)\""); // 路径通配规则
 
   private Drawable placeHolder, errorImage;// 占位图，错误图
   private OnImageClickListener onImageClickListener;// 图片点击回调
   private OnURLClickListener onURLClickListener;// 超链接点击回调
   // private HashSet<Target> targets;
   private HashSet<ImageTarget> targets;
-  private HashMap<String, ImageHolder> mImages;
+  private HashMap<String, ImageHolder> mImages; // 存放的是以图片路径为key的hashmap, 同时holder中存放了图片的次序
   private ImageFixListener mImageFixListener;
   private int d_w = 200;
   private int d_h = 200;
+  private Activity activity;
 
   public RichText(Context context) {
     this(context, null);
@@ -68,7 +72,7 @@ public class RichText extends TextView {
 
   public RichText(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-
+    activity = (Activity) context;
     init(context, attrs);
   }
 
@@ -185,18 +189,19 @@ public class RichText extends TextView {
         continue;
       }
       holder = new ImageHolder(src, position);
-      widthMatcher = IMAGE_WIDTH_PATTERN.matcher(image);
-      if (widthMatcher.find()) {
-        holder.width =
-            parseStringToInteger(getTextBetweenQuotation(widthMatcher.group().trim().substring(6)));
-      }
+      // widthMatcher = IMAGE_WIDTH_PATTERN.matcher(image);
+      // if (widthMatcher.find()) {
+      // holder.width =
+      // parseStringToInteger(getTextBetweenQuotation(widthMatcher.group().trim().substring(6)));
+      // }
+      //
+      // heightMatcher = IMAGE_HEIGHT_PATTERN.matcher(image);
+      // if (heightMatcher.find()) {
+      // holder.height = parseStringToInteger(
+      // getTextBetweenQuotation(heightMatcher.group().trim().substring(6)));
+      // }
 
-      heightMatcher = IMAGE_HEIGHT_PATTERN.matcher(image);
-      if (heightMatcher.find()) {
-        holder.height = parseStringToInteger(
-            getTextBetweenQuotation(heightMatcher.group().trim().substring(6)));
-      }
-
+      // Log.e("hold src: ",holder.src);
       mImages.put(holder.src, holder);
       position++;
     }
@@ -256,23 +261,32 @@ public class RichText extends TextView {
     }
   }
 
+  private int getScreenWidth() {
+    DisplayMetrics displaymetrics = new DisplayMetrics();
+    activity.getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+    return displaymetrics.widthPixels;
+  }
+
   /**
    * 异步加载图片（依赖于Picasso）
    */
   private Html.ImageGetter asyncImageGetter = new Html.ImageGetter() {
     @Override
     public Drawable getDrawable(String source) {
+      // Log.e("source: ",source);
       final URLDrawable urlDrawable = new URLDrawable();
       ImageTarget target = new ImageTarget(urlDrawable);
       addTarget(target);
       ImageHolder holder = mImages.get(source);
       RequestCreator load = Picasso.with(getContext())
-          .load(source);
+          .load(source).resize(getScreenWidth() - (int) DensityUtils.convertDpToPixel(32),
+              (int) DensityUtils.convertDpToPixel(200));;
       if (mImageFixListener != null && holder != null) {
         mImageFixListener.onFix(holder);
-        if (holder.width != -1 && holder.height != -1) {
-          load.resize(holder.width, holder.height);
-        }
+        // if (holder.width != -1 && holder.height != -1) {
+        load.resize((int) DensityUtils.convertDpToPixel(300),
+            (int) DensityUtils.convertDpToPixel(200));
+        // }
 
         if (holder.scaleType == ImageHolder.CENTER_CROP) {
           load.centerCrop();

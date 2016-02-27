@@ -50,13 +50,13 @@ public class ParseActivity extends AppCompatActivity {
                 String title = mBlog.title;
                 html_text = "";
                 for (Paragraph paragraph : items) {
+                  Log.e("data", paragraph.data);
                   if (paragraph.type.equals("text"))
                     html_text +=
-                        "<p><span style=\"font-size: 16sp;\">" + "    "+paragraph.data + "\n\n"
-                            + "</span></p";
+                        "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + paragraph.data ;//开头空2格
                   else if (paragraph.type.equals("image"))
                     html_text += "<p><img title=\"\" src=\"" + paragraph.data
-                        + "\" height=\"300\" width=\"450\" style=\"cursor: pointer;\"></p>";
+                        + "\"></p>";
                 }
                 runOnUiThread(new Runnable() {
                   @Override
